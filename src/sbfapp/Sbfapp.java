@@ -5,39 +5,59 @@
  */
 package sbfapp;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import sbfapp.DB;
-
+import utils.DB;
+import sbfapp.model.Order;
 
 /**
  *
- * @author Usuario
+ * @author Uclides Gil
  */
 public class Sbfapp extends Application {
+
+    //create observable list of de Orders
+    private ObservableList<Order> orderData = FXCollections.observableArrayList();
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/view/main.fxml"));
         
         Scene scene = new Scene(root);
-        
+    
         stage.setScene(scene);
         stage.show();
         
-        DB conBd = new DB();
-        
-        conBd.connect("jdbc:mysql://db", "user", "password");
+        //test your connection DB
+        //conBd.start();
+    
+       
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        launch(args);
+        launch(args);        
     }
-    
+
+    //get list of order
+    public ObservableList<Order> getOrderData(){
+     return orderData;
+    }
 }
