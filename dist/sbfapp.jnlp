@@ -20,7 +20,7 @@
     <jar href="lib\jiconfont-open_iconic-1.1.1.2.jar" size="22037" download="eager" />
     <jar href="lib\json-20160212.jar" size="49176" download="eager" />
     <jar href="lib\mysql-connector-java-5.1.39-bin.jar" size="989497" download="eager" />
-    <jar href="sbfapp.jar" size="31997" download="eager" />
+    <jar href="sbfapp.jar" size="47862" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="sbfapp" >
     <param name="requiredFXVersion" value="8.0+"/>

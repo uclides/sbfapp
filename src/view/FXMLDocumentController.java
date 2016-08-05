@@ -67,8 +67,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML JFXTextField searchField2;
         
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-          // conBd.getStatusDB(conBd);     
+    private void handleButtonAction(ActionEvent event) throws Exception {
+           conBd.initParameterDB();    
 
     }
     @Override

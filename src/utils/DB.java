@@ -29,7 +29,8 @@ import tray.animations.AnimationType;
 public class DB {
   private static final Logger logger = Logger.getLogger(DB.class.getName());
   private static final String[] SAMPLE_NAME_DATA = { "John", "Jill", "Jack", "Jerry" };
-   
+  
+  DBSetupTask setup = new DBSetupTask();
   // executes database operations concurrent to JavaFX operations.
   private ExecutorService databaseExecutor;
  
@@ -47,7 +48,7 @@ public class DB {
     );  
  
     // run the database setup in parallel to the JavaFX application setup.
-    DBSetupTask setup = new DBSetupTask();
+    
     databaseSetupFuture = databaseExecutor.submit(setup);
     
   }
@@ -67,11 +68,18 @@ public class DB {
     // a real app might use a preloader or show a splash screen if this 
     // was to take a long time rather than just pausing the JavaFX application thread.
     databaseSetupFuture.get();
-        
-    notifications.createNotDesktop(new Image("images/bf.png"), "Base de Datos",
-            "Se ha establecido su conexión exitosamente", Paint.valueOf("#333"),
-            AnimationType.POPUP, 3);
     
+      System.out.println(databaseExecutor.isShutdown());
+    if(databaseExecutor.isShutdown() == false && setup.getStatus() == true  ){
+        notifications.createNotDesktop(new Image("images/success.png"), "Base de Datos",
+                "Se ha establecido su conexión exitosamente", Paint.valueOf("#333"),
+                AnimationType.POPUP, 3);
+    }
+    else{
+        notifications.createNotDesktop(new Image("images/error.png"), "Base de Datos",
+                "Error al intentar conectar", Paint.valueOf("#333"),
+                AnimationType.POPUP, 3);
+    }
   }
  
   abstract class DBTask<T> extends Task<T> {
@@ -81,9 +89,13 @@ public class DB {
   }
   
   class DBSetupTask extends DBTask {
+     
+      boolean status = false;
+      
     @Override protected Void call() throws Exception {
       try (Connection con = getConnection()) {
-            if (!schemaExists(con)) {
+            if (con.getClientInfo()!= null) {
+                setStatus(true);
         }
       }
         
@@ -120,11 +132,18 @@ public class DB {
       }
       logger.info("Populated database");
     }
+    
+    public boolean getStatus(){
+        return status;
+    }
+    public void setStatus(boolean status){
+        this.status = status;
+    }
   }
  
   private Connection getConnection() throws ClassNotFoundException, SQLException {
     logger.info("Getting a database connection");
-    return DriverManager.getConnection("jdbc:mysql://www.bfimport.net:3306/bfimport_osc", "bfimport_root", "S0luc10n3sBFrootImp0rt");
+    return DriverManager.getConnection("jdbc:mysql://host", "user", "password");
   }
 
   static class DatabaseThreadFactory implements ThreadFactory{
