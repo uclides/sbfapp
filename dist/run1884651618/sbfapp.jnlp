@@ -8,6 +8,7 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="lib\TrayTester.jar" size="52070" download="eager" />
     <jar href="lib\jfoenix.jar" size="2155008" download="eager" />
     <jar href="lib\jiconfont-1.0.0.jar" size="3510" download="eager" />
     <jar href="lib\jiconfont-elusive-2.0.2.jar" size="51635" download="eager" />
@@ -19,7 +20,7 @@
     <jar href="lib\jiconfont-open_iconic-1.1.1.2.jar" size="22037" download="eager" />
     <jar href="lib\json-20160212.jar" size="49176" download="eager" />
     <jar href="lib\mysql-connector-java-5.1.39-bin.jar" size="989497" download="eager" />
-    <jar href="sbfapp.jar" size="10257" download="eager" />
+    <jar href="sbfapp.jar" size="32204" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="sbfapp" >
     <param name="requiredFXVersion" value="8.0+"/>

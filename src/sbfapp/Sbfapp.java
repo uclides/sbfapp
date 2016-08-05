@@ -30,9 +30,13 @@ import sbfapp.model.Order;
  * @author Uclides Gil
  */
 public class Sbfapp extends Application {
-
-    //create observable list of de Orders
-    private ObservableList<Order> orderData = FXCollections.observableArrayList();
+    
+    DB conDB = new DB();
+    
+    
+    @Override public void init() throws Exception {
+        conDB.initParameterDB();
+  }
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -44,8 +48,7 @@ public class Sbfapp extends Application {
         stage.show();
         
         //test your connection DB
-        //conBd.start();
-    
+        conDB.start();
        
     }
 
@@ -54,10 +57,5 @@ public class Sbfapp extends Application {
      */
     public static void main(String[] args) {
         launch(args);        
-    }
-
-    //get list of order
-    public ObservableList<Order> getOrderData(){
-     return orderData;
     }
 }
