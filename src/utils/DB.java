@@ -110,6 +110,6 @@ public class DB {
   
   Connection getConnection() throws ClassNotFoundException, SQLException {
     logger.info("Getting a database connection");
-    return DriverManager.getConnection("jdbc:mysql://www.bfimport.net:3306/bfimport_osc", "bfimport_root", "S0luc10n3sBFrootImp0rt");
+    return DriverManager.getConnection("jdbc:mysql://host", "user", "pass");
   }
 }
