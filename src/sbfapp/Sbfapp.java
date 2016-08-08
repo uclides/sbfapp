@@ -12,30 +12,45 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
-import utils.DB;
 import sbfapp.model.Order;
-
+import tray.animations.AnimationType;
+import utils.DB;
+import utils.DBSetupTask;
+import utils.FechOrders;
+import utils.Notifications;
 /**
  *
  * @author Uclides Gil
  */
 public class Sbfapp extends Application {
     
-    DB conDB = new DB();
-    
+    private ExecutorService databaseExecutor;
+    private Future          databaseSetupFuture;
+    DB conDB; 
+    DBSetupTask setup = new DBSetupTask();
+    FechOrders fechOrders = new FechOrders();
+    Notifications notifications = new Notifications();
     
     @Override public void init() throws Exception {
-        conDB.initParameterDB();
+        databaseExecutor = Executors.newFixedThreadPool(1, 
+                new DatabaseThreadFactory());
+       
+        databaseSetupFuture = databaseExecutor.submit(setup);
   }
     
     @Override
@@ -47,8 +62,10 @@ public class Sbfapp extends Application {
         stage.setScene(scene);
         stage.show();
         
-        //test your connection DB
-        conDB.start();
+        //check if connect to DB. Load notification
+        setup.setOnSucceeded((Event t) -> {
+            notifications.showStatusDB(setup.getStatus());            
+        });
        
     }
 
@@ -58,4 +75,28 @@ public class Sbfapp extends Application {
     public static void main(String[] args) {
         launch(args);        
     }
+    static class DatabaseThreadFactory implements ThreadFactory{
+
+        @Override
+        public Thread newThread(Runnable r) {
+
+            Thread thread = new Thread(r, "Database Connection");
+            thread.setDaemon(true);
+
+            return thread;
+        }  
+
+  }
+
+    public FechOrders getFechOrders() {
+        return fechOrders;
+    }
+
+    public void setFechOrders(FechOrders fechOrders) {
+        this.fechOrders = fechOrders;
+    }
+    
+    
+      
+      
 }

@@ -42,19 +42,20 @@ import jiconfont.icons.FontAwesome;
 import jiconfont.icons.GoogleMaterialDesignIcons;
 import jiconfont.javafx.IconFontFX;
 import jiconfont.javafx.IconNode;
+import sbfapp.Sbfapp;
 import sbfapp.model.Order;
 import utils.DB;
+import utils.FechOrders;
 
 /**
  *
  * @author Usuario
  */
 public class FXMLDocumentController implements Initializable {
-    //get object to connect DB
-    DB conBd =new DB();
-    
-    ResultSet rs;
-    
+    Sbfapp sbfapp = new Sbfapp();
+
+   FechOrders fechOrders = new FechOrders();
+   
     @FXML private JFXButton b_connection;   
     @FXML private JFXTreeTableView<Order> jFXTreeTableView;   
     @FXML private JFXTreeTableColumn<Order,String> jFXTreeTableColumn1;   
@@ -68,9 +69,9 @@ public class FXMLDocumentController implements Initializable {
         
     @FXML
     private void handleButtonAction(ActionEvent event) throws Exception {
-           conBd.initParameterDB();    
-
+           
     }
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         
@@ -98,26 +99,22 @@ public class FXMLDocumentController implements Initializable {
                 else return jFXTreeTableColumn3.getComputedValue(param);
             });
             
-            ObservableList<Order> orders = FXCollections.observableArrayList();
+            fechOrders.run();
             
-            orders.add(new Order("Computer Department", "23","CD 1"));
-            orders.add(new Order("Sales Department", "22","Employee 1"));
-            orders.add(new Order("Sales Department", "22","Employee 2"));
-            orders.add(new Order("Sales Department", "25","Employee 4"));
-            orders.add(new Order("Sales Department", "25","Employee 5"));
-            orders.add(new Order("IT Department", "42","ID 2"));
-            orders.add(new Order("HR Department", "22","HR 1"));
+            ObservableList<Order> orders = fechOrders.getOrders();
             
-            
+            //get init elemens DB
+
             final TreeItem<Order> root = new RecursiveTreeItem<>(orders, RecursiveTreeObject::getChildren);
             
             jFXTreeTableView.setRoot(root);
             jFXTreeTableView.setShowRoot(false);
             jFXTreeTableView.setEditable(true);
             
-            
             jFXTreeTableView.getColumns().setAll(jFXTreeTableColumn1, jFXTreeTableColumn2, jFXTreeTableColumn3);
         
     }    
+    
+  
     
 }

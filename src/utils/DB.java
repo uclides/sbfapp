@@ -8,8 +8,10 @@ package utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Observable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +20,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Paint;
@@ -30,7 +34,7 @@ public class DB {
   private static final Logger logger = Logger.getLogger(DB.class.getName());
   private static final String[] SAMPLE_NAME_DATA = { "John", "Jill", "Jack", "Jerry" };
   
-  DBSetupTask setup = new DBSetupTask();
+  
   // executes database operations concurrent to JavaFX operations.
   private ExecutorService databaseExecutor;
  
@@ -40,19 +44,7 @@ public class DB {
   Notifications notifications = new Notifications();
   
   // setting the database executor thread pool size to 1 ensures 
-  // only one database command is executed at any one time.
-    public void initParameterDB() throws Exception {
-    databaseExecutor = Executors.newFixedThreadPool(
-      1, 
-      new DatabaseThreadFactory()
-    );  
- 
-    // run the database setup in parallel to the JavaFX application setup.
-    
-    databaseSetupFuture = databaseExecutor.submit(setup);
-    
-  }
- 
+  // only one database command is executed at any one time. 
   // shutdown the program.
   public void stop() throws Exception {
     databaseExecutor.shutdown();
@@ -67,95 +59,57 @@ public class DB {
     // wait for the database setup to complete cleanly before showing any UI.
     // a real app might use a preloader or show a splash screen if this 
     // was to take a long time rather than just pausing the JavaFX application thread.
-    databaseSetupFuture.get();
-    
-      System.out.println(databaseExecutor.isShutdown());
-    if(databaseExecutor.isShutdown() == false && setup.getStatus() == true  ){
-        notifications.createNotDesktop(new Image("images/success.png"), "Base de Datos",
-                "Se ha establecido su conexión exitosamente", Paint.valueOf("#333"),
-                AnimationType.POPUP, 3);
-    }
-    else{
-        notifications.createNotDesktop(new Image("images/error.png"), "Base de Datos",
-                "Error al intentar conectar", Paint.valueOf("#333"),
-                AnimationType.POPUP, 3);
-    }
+//    databaseSetupFuture.get();
+//    
+//      System.out.println(databaseExecutor.isShutdown());
+//    if(databaseExecutor.isShutdown() == false && setup.getStatus() == true  ){
+//        notifications.createNotDesktop(new Image("images/success.png"), "Base de Datos",
+//                "Se ha establecido su conexión exitosamente", Paint.valueOf("#333"),
+//                AnimationType.POPUP, 3);
+//        
+//        //databaseExecutor.submit(fetchNamesTask);
+//    }
+//    else{
+//        notifications.createNotDesktop(new Image("images/error.png"), "Base de Datos",
+//                "Error al intentar conectar", Paint.valueOf("#333"),
+//                AnimationType.POPUP, 3);
+//    }
   }
  
-  abstract class DBTask<T> extends Task<T> {
-    DBTask() {
-      setOnFailed(t -> logger.log(Level.SEVERE, null, getException()));
-    }
-  }
-  
-  class DBSetupTask extends DBTask {
-     
-      boolean status = false;
-      
-    @Override protected Void call() throws Exception {
-      try (Connection con = getConnection()) {
-            if (con.getClientInfo()!= null) {
-                setStatus(true);
-        }
-      }
-        
-      return null;
-    }
-    
-    private boolean schemaExists(Connection con) {
-      logger.info("Checking for Schema existence");      
-      try {
-          Statement st = con.createStatement();      
-        st.executeQuery("select * from orders");
-        logger.info("Schema orders exists");      
-      } catch (SQLException ex) {
-        logger.info("Existing DB not found");
-        return false;
-      }
- 
-      return true;
-    }
- 
-    private void createSchema(Connection con) throws SQLException {
-      logger.info("Creating schema");
-      Statement st = con.createStatement();
-      String table = "create table employee(id integer, name varchar(64))";
-      st.executeUpdate(table);
-      logger.info("Created schema");
-    }
- 
-    private void populateDatabase(Connection con) throws SQLException {
-      logger.info("Populating database");      
-      Statement st = con.createStatement();      
-      for (String name: SAMPLE_NAME_DATA) {
-        st.executeUpdate("insert into employee values(1,'" + name + "')");
-      }
-      logger.info("Populated database");
-    }
-    
-    public boolean getStatus(){
-        return status;
-    }
-    public void setStatus(boolean status){
-        this.status = status;
-    }
-  }
- 
-  private Connection getConnection() throws ClassNotFoundException, SQLException {
-    logger.info("Getting a database connection");
-    return DriverManager.getConnection("jdbc:mysql://host", "user", "password");
-  }
 
-  static class DatabaseThreadFactory implements ThreadFactory{
+  
+  class FechOrders extends DBTask<ObservableList<String>>{
 
         @Override
-        public Thread newThread(Runnable r) {
+        protected ObservableList<String> call() throws Exception {
+           Thread.sleep(1000);
+           
+           try(Connection con = getConnection()){
+               return FechAllOrders(con);
+           }
+        }
 
-            Thread thread = new Thread(r, "Database Connection");
-            thread.setDaemon(true);
+        private ObservableList<String> FechAllOrders(Connection con) throws SQLException {
+            logger.info("Fetching names from database");
+            ObservableList<String> orders = FXCollections.observableArrayList();
 
-            return thread;
-        }  
+            Statement st = con.createStatement();      
+            ResultSet rs = st.executeQuery("select * from orders");
+            while (rs.next()) {
+              orders.add(rs.getString("id"));
+              orders.add(rs.getString("date"));
+              orders.add(rs.getString("user_id"));
+            }
 
+            logger.log(Level.INFO, "Found {0}", orders.toString());
+
+            return orders;
+        }
+  
+  }
+  
+  Connection getConnection() throws ClassNotFoundException, SQLException {
+    logger.info("Getting a database connection");
+    return DriverManager.getConnection("jdbc:mysql://www.bfimport.net:3306/bfimport_osc", "bfimport_root", "S0luc10n3sBFrootImp0rt");
   }
 }

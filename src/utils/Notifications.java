@@ -34,4 +34,19 @@ public class Notifications {
         tray.showAndDismiss(Duration.seconds(duration));
     }
     
+    public void showStatusDB( boolean  bool){
+        Notifications notifications = new Notifications();
+        
+        if(bool == true ){
+            notifications.createNotDesktop(new Image("images/success.png"), "Base de Datos",
+                "Se ha establecido su conexión exitosamente", Paint.valueOf("#333"),
+                AnimationType.POPUP, 3);
+        }
+        else{
+        notifications.createNotDesktop(new Image("images/error.png"), "Base de Datos",
+                "Error al intentar conectar", Paint.valueOf("#333"),
+                AnimationType.POPUP, 3);
+        }
+    }
+    
 }
