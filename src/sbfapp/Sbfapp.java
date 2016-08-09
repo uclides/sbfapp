@@ -5,6 +5,7 @@
  */
 package sbfapp;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Observable;
@@ -19,6 +20,9 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -29,44 +33,70 @@ import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import sbfapp.model.Order;
 import tray.animations.AnimationType;
-import utils.DB;
-import utils.DBSetupTask;
-import utils.FechOrders;
-import utils.Notifications;
+import utils.DataBase;
+import utils.FirstCheckDBService;
+import view.FXMLDocumentController;
 /**
  *
  * @author Uclides Gil
  */
 public class Sbfapp extends Application {
-    
-    private ExecutorService databaseExecutor;
-    private Future          databaseSetupFuture;
-    DB conDB; 
-    DBSetupTask setup = new DBSetupTask();
-    FechOrders fechOrders = new FechOrders();
-    Notifications notifications = new Notifications();
-    
+    DataBase dataBase = new DataBase();
+    Connection connection;
     @Override public void init() throws Exception {
-        databaseExecutor = Executors.newFixedThreadPool(1, 
-                new DatabaseThreadFactory());
-       
-        databaseSetupFuture = databaseExecutor.submit(setup);
-  }
-    
+  
+    }
+    /**
+     * check connection the database and update the GUI
+     * @param stage
+     * @throws Exception 
+     */
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/view/main.fxml"));
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/view/main.fxml"));
+        Parent root = (Parent) loader.load();
         
+        FXMLDocumentController controller = loader.getController();
+        
+        FirstCheckDBService service= new FirstCheckDBService();
+        service.setUrl("jdbc:mysql://host");
+        service.setUser("user");
+        service.setPassword("password");
+        
+        service.setOnSucceeded((WorkerStateEvent event) -> {
+            Connection con = null;
+            try {
+                con = service.getValue();
+                
+                if(con.getClientInfo() !=null)
+                    controller.validateGui(true);
+                else
+                    controller.validateGui(false);
+            }
+            catch(Exception e) {
+                controller.validateGui(false);
+                //show message, dialog box, whatever
+            }
+            finally {
+                if(con != null) {
+                    try{
+                        con.close();
+                    }
+                    catch(SQLException sqe){
+                        //yet another message, unable to close connection cleanly.
+                    }
+                }
+            }
+        });
+        
+        service.start();
+       
         Scene scene = new Scene(root);
     
         stage.setScene(scene);
         stage.show();
-        
-        //check if connect to DB. Load notification
-        setup.setOnSucceeded((Event t) -> {
-            notifications.showStatusDB(setup.getStatus());            
-        });
-       
+
     }
 
     /**
@@ -74,29 +104,6 @@ public class Sbfapp extends Application {
      */
     public static void main(String[] args) {
         launch(args);        
-    }
-    static class DatabaseThreadFactory implements ThreadFactory{
-
-        @Override
-        public Thread newThread(Runnable r) {
-
-            Thread thread = new Thread(r, "Database Connection");
-            thread.setDaemon(true);
-
-            return thread;
-        }  
-
-  }
-
-    public FechOrders getFechOrders() {
-        return fechOrders;
-    }
-
-    public void setFechOrders(FechOrders fechOrders) {
-        this.fechOrders = fechOrders;
-    }
-    
-    
-      
-      
+    } 
+   
 }

@@ -6,6 +6,7 @@
 package view;
 
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.controls.JFXTreeTableColumn;
 import com.jfoenix.controls.JFXTreeTableView;
@@ -32,6 +33,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.HBox;
@@ -44,19 +46,20 @@ import jiconfont.javafx.IconFontFX;
 import jiconfont.javafx.IconNode;
 import sbfapp.Sbfapp;
 import sbfapp.model.Order;
-import utils.DB;
-import utils.FechOrders;
+import utils.Notifications;
 
 /**
  *
  * @author Usuario
  */
 public class FXMLDocumentController implements Initializable {
-    Sbfapp sbfapp = new Sbfapp();
+    Notifications notifications = new Notifications();
+    Sbfapp sbfapp;
 
-   FechOrders fechOrders = new FechOrders();
-   
     @FXML private JFXButton b_connection;   
+    @FXML private JFXButton b_getOrders;
+    @FXML private JFXButton b_exit;
+    @FXML private JFXListView lv_type_order;
     @FXML private JFXTreeTableView<Order> jFXTreeTableView;   
     @FXML private JFXTreeTableColumn<Order,String> jFXTreeTableColumn1;   
     @FXML private JFXTreeTableColumn<Order,String> jFXTreeTableColumn2;   
@@ -66,10 +69,15 @@ public class FXMLDocumentController implements Initializable {
     @FXML Label editableTreeTableViewCount;
     @FXML JFXTextField searchField;
     @FXML JFXTextField searchField2;
-        
+    
+    Label lbl_order_new, lbl_order_process, lbl_order_completed, lbl_order_cancel;     
     @FXML
     private void handleButtonAction(ActionEvent event) throws Exception {
-           
+
+    }
+    @FXML
+    private void exitApp(ActionEvent event) throws Exception{
+        System.exit(0);
     }
     
     @Override
@@ -78,12 +86,9 @@ public class FXMLDocumentController implements Initializable {
             // TODO
             IconFontFX.register(GoogleMaterialDesignIcons.getIconFont());
             
-            IconNode iconNode = new IconNode(GoogleMaterialDesignIcons.AUTORENEW);
-            iconNode.setIconSize(30);
-            iconNode.setFill(Color.web("#607D8B"));
-            b_connection.setGraphic(iconNode);
-            
-            
+            setIconToButtom(b_connection, new IconNode(GoogleMaterialDesignIcons.AUTORENEW), "verifica tu conexión a base de datos");
+            setIconToButtom(b_getOrders, new IconNode(GoogleMaterialDesignIcons.GET_APP), "obtener todas las ordenes");
+            setIconToButtom(b_exit, new IconNode(GoogleMaterialDesignIcons.EXIT_TO_APP), "salir");
             //init values for table
             jFXTreeTableColumn1.setCellValueFactory((TreeTableColumn.CellDataFeatures<Order, String> param) ->{
                 if(jFXTreeTableColumn1.validateValue(param)) return param.getValue().getValue().getId();
@@ -98,23 +103,48 @@ public class FXMLDocumentController implements Initializable {
                 if(jFXTreeTableColumn3.validateValue(param)) return param.getValue().getValue().getUser_id();
                 else return jFXTreeTableColumn3.getComputedValue(param);
             });
-            
-            fechOrders.run();
-            
-            ObservableList<Order> orders = fechOrders.getOrders();
-            
-            //get init elemens DB
+            lbl_order_new = new Label("nuevas");
 
-            final TreeItem<Order> root = new RecursiveTreeItem<>(orders, RecursiveTreeObject::getChildren);
+            lbl_order_process = new Label("en proceso");
+            lbl_order_completed = new Label("completadas");
+            lbl_order_cancel = new Label("canceladas");
             
-            jFXTreeTableView.setRoot(root);
-            jFXTreeTableView.setShowRoot(false);
-            jFXTreeTableView.setEditable(true);
-            
-            jFXTreeTableView.getColumns().setAll(jFXTreeTableColumn1, jFXTreeTableColumn2, jFXTreeTableColumn3);
+            lv_type_order.getItems().addAll(lbl_order_new, lbl_order_process,
+                    lbl_order_completed, lbl_order_cancel);
+//            fechOrders.run();
+//            
+//            ObservableList<Order> orders = fechOrders.getOrders();
+//            
+//            //get init elemens DB
+//
+//            final TreeItem<Order> root = new RecursiveTreeItem<>(orders, RecursiveTreeObject::getChildren);
+//            
+//            jFXTreeTableView.setRoot(root);
+//            jFXTreeTableView.setShowRoot(false);
+//            jFXTreeTableView.setEditable(true);
+//            
+//            jFXTreeTableView.getColumns().setAll(jFXTreeTableColumn1, jFXTreeTableColumn2, jFXTreeTableColumn3);
         
     }    
+
+    public void validateGui(boolean bool){
+        b_connection.setDisable(bool);
+        b_getOrders.setDisable(!bool);
+         notifications.showStatusDB(bool);
+    }
     
-  
+    public void setIconToButtom(JFXButton button, IconNode iconNode,String tooltip){
+        IconNode icon = iconNode;
+        iconNode.setIconSize(30);
+        iconNode.setFill(Color.web("#CFD8DC"));
+        button.setGraphic(iconNode);
+        button.setTooltip(new Tooltip(tooltip));
+    }
+    
+    
+    
+    
+    
+    
     
 }
